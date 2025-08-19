@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import requests
+from PIL import Image
 
 def clear_minifig_images_directory(image_dir="minifig_images"):
   if os.path.exists(image_dir):
@@ -41,10 +42,23 @@ def get_lego_minifig_data(minifig_database, star_wars_database ,image_dir="minif
         try:
           response = requests.get(img_url, stream=True)
           response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+          # Save the image temporarily
+          temp_file = os.path.join(image_dir, f"temp_{minifig_name}{index}.jpg")
+          with open(temp_file, 'wb') as file:
+              for chunk in response.iter_content(chunk_size=8192):
+                  file.write(chunk)
 
-          with open(file_name, 'wb') as file:
-            for chunk in response.iter_content(chunk_size=8192):
-              file.write(chunk)
-          print(f"Downloaded {file_name}")
+          # Open the image with Pillow, resize it, and save it as 256x256
+          with Image.open(temp_file) as img:
+              img = img.convert("RGB")  # Ensure the image is in RGB format
+              img = img.resize((256, 256))  # Resize to 256x256
+              img.save(file_name)  # Save the resized image
+          os.remove(temp_file)  # Remove the temporary file
+          print(f"Downloaded and resized {file_name}")
+
         except requests.exceptions.RequestException as e:
           print(f"Error downloading {img_url}: {e}")
+        except Exception as e:
+          print(f"Error processing {file_name}: {e}")
+
+

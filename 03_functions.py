@@ -18,150 +18,26 @@ from tensorflow.keras import callbacks as tf_callbacks
 from sklearn import metrics as sk_metrics
 from sklearn import model_selection as sk_model_selection
 
-def load_image_safely(image_path, target_size=(256, 256)):
+def image_blur(image, blur_factor):
     """
-    Charge une image de manière sécurisée et la redimensionne.
+    Apply a Gaussian blur to the image.
     
-    Args:
-        image_path (str): Chemin vers l'image
-        target_size (tuple): Taille cible (largeur, hauteur)
+    Parameters:
+    - image: Input image as a NumPy array.
+    - blur_factor: Factor by which to blur the image (0 to 1).
     
     Returns:
-        numpy.ndarray: Image sous forme d'array NumPy ou None si erreur
+    - Blurred image as a NumPy array.
     """
-    if not os.path.exists(image_path):
-        print(f"Erreur: Le fichier {image_path} n'existe pas")
-        return None
+    if not isinstance(image, np.ndarray):
+        raise ValueError("Input must be a NumPy array.")
     
-    # Charger l'image
-    image = cv2.imread(image_path)
+    if not (0 <= blur_factor <= 0.65):
+        raise ValueError("Blur factor must be between 0 and 1.")
     
-    if image is None:
-        print(f"Erreur: Impossible de charger l'image {image_path}")
-        return None
+    kernel_size = int(blur_factor * 10) | 1  # Ensure kernel size is odd
+    blurred_image = cv2.GaussianBlur(image, (kernel_size, kernel_size), 0)
     
-    # Convertir de BGR à RGB (OpenCV charge en BGR par défaut)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    
-    # Redimensionner l'image
-    image = cv2.resize(image, target_size)
-    
-    # Normaliser les valeurs des pixels (0-255 -> 0-1)
-    image = image.astype(np.float32) / 255.0
-    
-    return image
-
-def apply_data_augmentation(image):
-    """
-    Applique des transformations aléatoires à une image pour l'augmentation de données.
-    
-    Args:
-        image (numpy.ndarray): Image sous forme d'array NumPy
-    
-    Returns:
-        numpy.ndarray: Image transformée
-    """
-    if image is None:
-        return None
-    
-    # Définir les transformations d'augmentation
-    transform = A.Compose([
-        A.RandomRotate90(p=0.5),
-        A.Flip(p=0.5),
-        A.RandomBrightnessContrast(p=0.2),
-        A.RandomGamma(p=0.2),
-        A.HueSaturationValue(p=0.2),
-        A.GaussNoise(p=0.2),
-        A.OneOf([
-            A.MotionBlur(p=0.2),
-            A.MedianBlur(blur_limit=3, p=0.1),
-            A.Blur(blur_limit=3, p=0.1),
-        ], p=0.2),
-        A.CoarseDropout(max_holes=8, max_height=8, max_width=8, p=0.2),
-    ])
-    
-    # Appliquer les transformations
-    transformed = transform(image=image)
-    return transformed['image']
-
-def load_minifig_dataset(image_dir="minifig_images", target_size=(224, 224)):
-    """
-    Charge toutes les images de minifigures et crée un dataset.
-    
-    Args:
-        image_dir (str): Répertoire contenant les images
-        target_size (tuple): Taille cible pour les images
-    
-    Returns:
-        tuple: (images, labels, label_names)
-    """
-    images = []
-    labels = []
-    label_names = []
-    
-    if not os.path.exists(image_dir):
-        print(f"Erreur: Le répertoire {image_dir} n'existe pas")
-        return np.array([]), np.array([]), []
-    
-    # Obtenir les noms uniques des personnages à partir des noms de fichiers
-    files = os.listdir(image_dir)
-    character_names = set()
-    
-    for file in files:
-        if file.endswith(('.jpg', '.jpeg', '.png')):
-            # Extraire le nom du personnage du nom de fichier
-            character_name = ''.join([c for c in file if not c.isdigit()]).replace('.jpg', '').replace('.jpeg', '').replace('.png', '').replace('_', ' ').strip()
-            character_names.add(character_name)
-    
-    label_names = sorted(list(character_names))
-    print(f"Personnages détectés: {label_names}")
-    
-    # Charger les images
-    for file in files:
-        if file.endswith(('.jpg', '.jpeg', '.png')):
-            image_path = os.path.join(image_dir, file)
-            image = load_image_safely(image_path, target_size)
-            
-            if image is not None:
-                # Extraire le label du nom de fichier
-                character_name = ''.join([c for c in file if not c.isdigit()]).replace('.jpg', '').replace('.jpeg', '').replace('.png', '').replace('_', ' ').strip()
-                
-                if character_name in label_names:
-                    label_index = label_names.index(character_name)
-                    images.append(image)
-                    labels.append(label_index)
-    
-    print(f"Chargé {len(images)} images pour {len(label_names)} personnages")
-    
-    return np.array(images), np.array(labels), label_names
-
-def create_augmented_dataset(images, labels, augment_factor=3):
-    """
-    Crée un dataset augmenté en appliquant des transformations aléatoires.
-    
-    Args:
-        images (numpy.ndarray): Images originales
-        labels (numpy.ndarray): Labels correspondants
-        augment_factor (int): Nombre d'images augmentées à créer par image originale
-    
-    Returns:
-        tuple: (images_augmentées, labels_augmentés)
-    """
-    augmented_images = []
-    augmented_labels = []
-    
-    # Ajouter les images originales
-    for i, image in enumerate(images):
-        augmented_images.append(image)
-        augmented_labels.append(labels[i])
-        
-        # Créer des versions augmentées
-        for _ in range(augment_factor):
-            aug_image = apply_data_augmentation(image)
-            if aug_image is not None:
-                augmented_images.append(aug_image)
-                augmented_labels.append(labels[i])
-    
-    print(f"Dataset augmenté: {len(augmented_images)} images au total")
-    
-    return np.array(augmented_images), np.array(augmented_labels)
+    plt.imshow(blurred_image)
+    plt.show()
+    return blurred_image

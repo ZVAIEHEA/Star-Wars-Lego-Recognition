@@ -73,30 +73,23 @@ def get_lego_minifig_data(minifig_database, star_wars_database ,image_dir="minif
 
 def create_training_and_test_datasets(image_dir="minifig_images"):
   
+  images = []
   train_images = []
   test_images = []
 
-  if os.path.exists("minifig_images/train_images"):
+  if os.path.exists("train_images"):
     print("train_images directory already exists")
   else:
-    os.makedirs("minifig_images/train_images")
+    os.makedirs("train_images")
     print("Created train_images directory")
 
-  if os.path.exists("minifig_images/test_images"):
+  if os.path.exists("test_images"):
     print("test_images directory already exists")
   else:
-    os.makedirs("minifig_images/test_images")
+    os.makedirs("test_images")
     print("Created test_images directory")
   
-  for file_name in os.listdir(image_dir):
-    n = random.randint(0, 2)  # Randomly choose between 0 and 1
-    if n == 0:
-      print("do nothing")
-    else:
-      for i in range (n):
-        blur_factor = random.uniform(0, 0.65)  # Random blur factor between 0 and 0.65
-        image_path = os.path.join(image_dir, file_name)
-        image = plt.imread(image_path)
-        blurred_image = image_blur(image, blur_factor=blur_factor)
+  
+
 
 

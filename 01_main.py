@@ -11,6 +11,7 @@ functions = importlib.import_module('03_functions')
 get_lego_minifig_data = data.get_lego_minifig_data
 clear_minifig_images_directory = data.clear_minifig_images_directory
 image_blur = functions.image_blur
+create_training_and_test_datasets = data.create_training_and_test_datasets
 
 
 
@@ -31,7 +32,8 @@ if __name__ == "__main__" :
   # Show augmented image
   image_path = os.path.join(image_dir, "Kylo_Ren748.jpg")  # Example image path
   image = plt.imread(image_path) 
-  blurred_image = image_blur(image, blur_factor=0.6)  # Apply blur with a factor of what you want
+  #blurred_image = image_blur(image, blur_factor=0.6)  # Apply blur with a factor of what you want
+  create_training_and_test_datasets(image_dir="minifig_images")
 
   
 

@@ -38,6 +38,5 @@ def image_blur(image, blur_factor):
     kernel_size = int(blur_factor * 10) | 1  # Ensure kernel size is odd
     blurred_image = cv2.GaussianBlur(image, (kernel_size, kernel_size), 0)
     
-    plt.imshow(blurred_image)
-    plt.show()
     return blurred_image
+
